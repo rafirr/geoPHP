@@ -80,26 +80,26 @@ class Polygon extends Collection
     return $centroid;
   }
 
-	/**
-	 * Find the outermost point from the centroid
-	 *
-	 * @returns Point The outermost point
-	 */
+  /**
+   * Find the outermost point from the centroid
+   *
+   * @returns Point The outermost point
+   */
   public function outermostPoint() {
-		$centroid = $this->getCentroid();
+    $centroid = $this->getCentroid();
 
-		$max = array('length' => 0, 'point' => null);
+    $max = array('length' => 0, 'point' => null);
 
-		foreach($this->getPoints() as $point) {
-			$lineString = new LineString(array($centroid, $point));
+    foreach($this->getPoints() as $point) {
+      $lineString = new LineString(array($centroid, $point));
 
-			if($lineString->length() > $max['length']) {
-				$max['length'] = $lineString->length();
-				$max['point'] = $point;
-			}
-		}
+      if($lineString->length() > $max['length']) {
+        $max['length'] = $lineString->length();
+        $max['point'] = $point;
+      }
+    }
 
-		return $max['point'];
+    return $max['point'];
   }
 
   public function exteriorRing() {
@@ -139,6 +139,22 @@ class Polygon extends Collection
     }
     return TRUE;
   }
+  
+  public function pointInPolygon($point,$c = false){
+    foreach($this->components as $component){
+      $pts = $component->getComponents();
+      $num = count($pts);
+      $i = 0;
+      $j = $num-1;
+      for($i;$i<$num;$i++){
+        if(($pts[$i]->y() > $point->y()) != ($pts[$j]->y() > $point->y()) && ($point->x() < ($pts[$j]->x() - $pts[$i]->x()) * ($point->y() - $pts[$i]->y()) / ($pts[$j]->y() - $pts[$i]->y()) + $pts[$i]->x())){
+          $c = $c === true ? false : true;
+        }
+        $j = $i;
+      }
+    }
+    return $c;
+  }
 
   /**
    * For a given point, determine whether it's bounded by the given polygon.
@@ -150,7 +166,7 @@ class Polygon extends Collection
    * @param boolean $pointOnVertex - whether a vertex should be considered "in" or not
    * @return boolean
    */
-  public function pointInPolygon($point, $pointOnBoundary = true, $pointOnVertex = true) {
+  public function pointInPolygon_($point, $pointOnBoundary = true, $pointOnVertex = true) {
     $vertices = $this->getPoints();
 
     // Check if the point sits exactly on a vertex
