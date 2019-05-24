@@ -54,9 +54,16 @@ class KML extends GeoAdapter
     $text = mb_strtolower($text, mb_detect_encoding($text));
     $text = preg_replace('/<!\[cdata\[(.*?)\]\]>/s','',$text);
 
+    
+   // print_r($text);
+   // exit;
+
     // Load into DOMDocument
     $xmlobj = new DOMDocument();
     @$xmlobj->loadXML($text);
+
+
+
     if ($xmlobj === false) {
       throw new Exception("Invalid KML: ". $text);
     }
@@ -79,14 +86,35 @@ class KML extends GeoAdapter
     $placemark_elements = $this->xmlobj->getElementsByTagName('placemark');
     if ($placemark_elements->length) {
       foreach ($placemark_elements as $placemark) {
+
+        /**
+         * Area id
+         */
+        $areaId = null;
+   
         foreach ($placemark->childNodes as $child) {
+          /**
+           * Find area_id
+           */
+          if($child->nodeName == 'extendeddata'){
+            foreach ($child->childNodes as $extendedData) {
+              if($extendedData->childNodes){ 
+                if($extendedData->getAttribute('name') == 'area_id'){
+                  $areaId = str_replace(' ','', preg_replace("/[^A-Za-z0-9 ]/", '', $extendedData->nodeValue));
+                }
+              }
+            }
+          }
+
           // Node names are all the same, except for MultiGeometry, which maps to GeometryCollection
           $node_name = $child->nodeName == 'multigeometry' ? 'geometrycollection' : $child->nodeName;
           if (array_key_exists($node_name, $geom_types)) {
             $function = 'parse'.$geom_types[$node_name];
-            $geometries[] = $this->$function($child);
+            $geometries[] = $this->$function($child, $areaId);
           }
         }
+
+      //  exit;
       }
     }
     else {
@@ -97,6 +125,9 @@ class KML extends GeoAdapter
         $geometries[] = $this->$function($this->xmlobj->documentElement);
       }
     }
+
+   // exit;
+
     return geoPHP::geometryReduce($geometries);
   }
 
@@ -112,7 +143,7 @@ class KML extends GeoAdapter
     return $children;
   }
 
-  protected function parsePoint($xml) {
+  protected function parsePoint($xml, $areaId = null) {
     $coordinates = $this->_extractCoordinates($xml);
     if (!empty($coordinates)) {
       return new Point($coordinates[0][0],$coordinates[0][1]);
@@ -122,7 +153,7 @@ class KML extends GeoAdapter
     }
   }
 
-  protected function parseLineString($xml) {
+  protected function parseLineString($xml, $areaId = null) {
     $coordinates = $this->_extractCoordinates($xml);
     $point_array = array();
     foreach ($coordinates as $set) {
@@ -131,7 +162,8 @@ class KML extends GeoAdapter
     return new LineString($point_array);
   }
 
-  protected function parsePolygon($xml) {
+  protected function parsePolygon($xml, $areaId = null) {
+
     $components = array();
 
     $outer_boundary_element_a = $this->childElements($xml, 'outerboundaryis');
@@ -156,7 +188,10 @@ class KML extends GeoAdapter
       }
     }
 
-    return new Polygon($components);
+    $polygon = new Polygon($components);
+    $polygon->setSRID($areaId);
+
+    return $polygon;
   }
 
   protected function parseGeometryCollection($xml) {
