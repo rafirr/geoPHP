@@ -91,7 +91,12 @@ class KML extends GeoAdapter
          * Area id
          */
         $areaId = null;
-   
+
+        /**
+         * Hours
+         */
+        $hours = null;
+
         foreach ($placemark->childNodes as $child) {
           /**
            * Find area_id
@@ -100,7 +105,11 @@ class KML extends GeoAdapter
             foreach ($child->childNodes as $extendedData) {
               if($extendedData->childNodes){ 
                 if($extendedData->getAttribute('name') == 'area_id'){
-                  $areaId = str_replace(' ','', preg_replace("/[^A-Za-z0-9 ]/", '', $extendedData->nodeValue));
+                  $areaId = str_replace(' ','', $extendedData->nodeValue);
+                }
+
+                if($extendedData->getAttribute('name') == 'hours'){
+                  $hours = str_replace(' ','',$extendedData->nodeValue);
                 }
               }
             }
@@ -110,7 +119,7 @@ class KML extends GeoAdapter
           $node_name = $child->nodeName == 'multigeometry' ? 'geometrycollection' : $child->nodeName;
           if (array_key_exists($node_name, $geom_types)) {
             $function = 'parse'.$geom_types[$node_name];
-            $geometries[] = $this->$function($child, $areaId);
+            $geometries[] = $this->$function($child, $areaId, $hours);
           }
         }
 
@@ -143,7 +152,7 @@ class KML extends GeoAdapter
     return $children;
   }
 
-  protected function parsePoint($xml, $areaId = null) {
+  protected function parsePoint($xml, $areaId = null, $hours = null) {
     $coordinates = $this->_extractCoordinates($xml);
     if (!empty($coordinates)) {
       return new Point($coordinates[0][0],$coordinates[0][1]);
@@ -153,7 +162,7 @@ class KML extends GeoAdapter
     }
   }
 
-  protected function parseLineString($xml, $areaId = null) {
+  protected function parseLineString($xml, $areaId = null, $hours = null) {
     $coordinates = $this->_extractCoordinates($xml);
     $point_array = array();
     foreach ($coordinates as $set) {
@@ -162,7 +171,7 @@ class KML extends GeoAdapter
     return new LineString($point_array);
   }
 
-  protected function parsePolygon($xml, $areaId = null) {
+  protected function parsePolygon($xml, $areaId = null, $hours = null) {
 
     $components = array();
 
@@ -190,6 +199,7 @@ class KML extends GeoAdapter
 
     $polygon = new Polygon($components);
     $polygon->setSRID($areaId);
+    $polygon->setHours($hours);
 
     return $polygon;
   }
