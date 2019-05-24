@@ -105,11 +105,11 @@ class KML extends GeoAdapter
             foreach ($child->childNodes as $extendedData) {
               if($extendedData->childNodes){ 
                 if($extendedData->getAttribute('name') == 'area_id'){
-                  $areaId = str_replace(' ','', $extendedData->nodeValue);
+                  $areaId = trim(preg_replace('/\s+/', ' ', str_replace(' ','',$extendedData->nodeValue)));
                 }
 
                 if($extendedData->getAttribute('name') == 'hours'){
-                  $hours = str_replace(' ','',$extendedData->nodeValue);
+                  $hours = trim(preg_replace('/\s+/', ' ', str_replace(' ','',$extendedData->nodeValue)));
                 }
               }
             }
