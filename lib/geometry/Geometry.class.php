@@ -7,6 +7,7 @@ abstract class Geometry
 {
   private   $geos = NULL;
   protected $srid = NULL;
+  protected $hours = NULL;
   protected $geom_type;
 
   // Abtract: Standard
@@ -54,6 +55,17 @@ abstract class Geometry
       $this->geos()->setSRID($srid);
     }
     $this->srid = $srid;
+  }
+
+  public function hours() {
+    return $this->hours;
+  }
+
+  public function setHours($hours) {
+    if ($this->geos()) {
+      $this->geos()->hours($hours);
+    }
+    $this->hours = $hours;
   }
 
   public function envelope() {
@@ -127,6 +139,10 @@ abstract class Geometry
 
   public function getSRID() {
     return $this->SRID();
+  }
+
+  public function getHours() {
+    return $this->hours();
   }
 
   public function asText() {
