@@ -10,6 +10,7 @@ class MultiPolygon extends Collection
 
     $area_id = null;
     $hours = null;
+    $zone = null;
 
     foreach($this->components as $component){
       $c = $component->pointInPolygon($point,$c);
@@ -17,6 +18,7 @@ class MultiPolygon extends Collection
       if($c && !$area_id){
         $area_id = $component->getSRID();
         $hours = $component->getHours();
+        $zone = $component->getZone();
       }
     }
 
@@ -24,7 +26,7 @@ class MultiPolygon extends Collection
       return $c;
     }
     else{
-      return (object) array('status' => $c, 'area_id' => $area_id, 'hours' => $hours);
+      return (object) array('status' => $c, 'area_id' => $area_id, 'hours' => $hours, 'zone' => $zone);
     }
   }
 
