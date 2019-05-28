@@ -27,4 +27,19 @@ class MultiPolygon extends Collection
       return (object) array('status' => $c, 'area_id' => $area_id, 'hours' => $hours);
     }
   }
+
+  public function parsePolygons(){
+    
+    $data = [];
+    
+    foreach($this->components as $component){
+      array_push($data, (object) array(
+        'area_id' => $component->getSRID(),
+        'zone' => $component->getZone(),
+        'hours' => $component->getHours(),
+      ));
+    }
+
+    return $data;
+  }
 }
