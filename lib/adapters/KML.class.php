@@ -87,6 +87,7 @@ class KML extends GeoAdapter
     if ($placemark_elements->length) {
       foreach ($placemark_elements as $placemark) {
 
+
         /**
          * Area id
          */
@@ -106,9 +107,16 @@ class KML extends GeoAdapter
           /**
            * Find area_id
            */
+ 
           if($child->nodeName == 'extendeddata'){
+
             foreach ($child->childNodes as $extendedData) {
+
+               
               if($extendedData->childNodes){ 
+
+              
+
                 if($extendedData->getAttribute('name') == 'area_id'){
                   $areaId = trim(preg_replace('/\s+/', ' ', str_replace(' ','',$extendedData->nodeValue)));
                 }
@@ -132,7 +140,6 @@ class KML extends GeoAdapter
           }
         }
 
-      //  exit;
       }
     }
     else {
@@ -145,7 +152,6 @@ class KML extends GeoAdapter
     }
 
    // exit;
-
     return geoPHP::geometryReduce($geometries);
   }
 
@@ -182,6 +188,7 @@ class KML extends GeoAdapter
 
   protected function parsePolygon($xml, $areaId = null, $hours = null, $zone = null) {
 
+
     $components = array();
 
     $outer_boundary_element_a = $this->childElements($xml, 'outerboundaryis');
@@ -214,14 +221,14 @@ class KML extends GeoAdapter
     return $polygon;
   }
 
-  protected function parseGeometryCollection($xml) {
+  protected function parseGeometryCollection($xml, $areaId = null, $hours = null, $zone = null) {
     $components = array();
     $geom_types = geoPHP::geometryList();
     foreach ($xml->childNodes as $child) {
       $nodeName = ($child->nodeName == 'linearring') ? 'linestring' : $child->nodeName;
       if (array_key_exists($nodeName, $geom_types)) {
         $function = 'parse'.$geom_types[$nodeName];
-        $components[] = $this->$function($child);
+        $components[] = $this->$function($child, $areaId, $hours, $zone);
       }
     }
     return new GeometryCollection($components);
