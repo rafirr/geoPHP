@@ -113,9 +113,7 @@ class KML extends GeoAdapter
             foreach ($child->childNodes as $extendedData) {
 
                
-              if($extendedData->childNodes){ 
-
-              
+              if($extendedData->childNodes && $extendedData->nodeName !== "#text"){ 
 
                 if($extendedData->getAttribute('name') == 'area_id'){
                   $areaId = trim(preg_replace('/\s+/', ' ', str_replace(' ','',$extendedData->nodeValue)));
